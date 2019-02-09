@@ -101,14 +101,8 @@ public class StreamRegistryHealthCheck extends HealthCheck {
         metricRegistry.register(Metrics.CONSUMER_REGISTRATION_HEALTH.getName(), (Gauge<Integer>)() -> isConsumerRegistrationHealthy() ? 1 : 2);
         metricRegistry.register(Metrics.STATE_STORE_STATE.getName(), (Gauge<String>)() -> getKstreamsState().toString());
 
-        streamRegHealthCheckStream = createCanaryStream();
-        streamResource.upsertStream(streamName, streamRegHealthCheckStream);
-
         consumerResource = streamResource.getConsumerResource();
-        consumerResource.upsertConsumer(streamName, "C1", region);
-
         producerResource = streamResource.getProducerResource();
-        producerResource.upsertProducer(streamName, "P1", region);
     }
 
     private synchronized boolean isStreamCreationHealthy() {
@@ -172,6 +166,9 @@ public class StreamRegistryHealthCheck extends HealthCheck {
     }
 
     private void validateCreateStream() {
+        streamRegHealthCheckStream = createCanaryStream();
+        streamResource.upsertStream(streamName, streamRegHealthCheckStream);
+
         try {
             Response response = streamResource.upsertStream(streamName, streamRegHealthCheckStream);
             if (response.getStatus() != 202) {
@@ -292,6 +289,8 @@ public class StreamRegistryHealthCheck extends HealthCheck {
     }
 
     private void validateConsumerRegistration() {
+        consumerResource.upsertConsumer(streamName, "C1", region);
+
         try {
             Response response = consumerResource.getConsumer(streamName, "C1");
 
